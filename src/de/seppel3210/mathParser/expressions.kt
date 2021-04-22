@@ -16,7 +16,15 @@ class Constant(val value: Double) : Expression {
     }
 }
 
+class Variable(val name: String) : Expression {
+    override fun reduce(): Expression {
+        return this
+    }
 
+    override fun toString(): String {
+        return name
+    }
+}
 
 class Multiplication(private val left: Expression, private val right: Expression) : Expression {
     override fun reduce(): Expression {

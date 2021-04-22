@@ -23,7 +23,12 @@ private fun parse(tokenList: List<String>): Expression {
     }
 
     if (tokens.size == 1) {
-        return Constant(tokens.first().toDouble())
+        val value = tokens.first().toDoubleOrNull()
+        return if (value != null) {
+            Constant(value)
+        } else {
+            Variable(tokens.first())
+        }
     }
 
     val leftTokens = nextExpressionTokens(tokens)
