@@ -93,6 +93,6 @@ class Power(private val left: Expression, private val right: Expression) : Expre
     }
 
     override fun toString(): String {
-        return "($left / $right)"
+        return "($left ^ $right)"
     }
 }
