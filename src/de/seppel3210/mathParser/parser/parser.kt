@@ -1,4 +1,6 @@
-package de.seppel3210.mathParser
+package de.seppel3210.mathParser.parser
+
+import de.seppel3210.mathParser.expression.*
 
 const val openParen = "("
 const val closingParen = ")"
