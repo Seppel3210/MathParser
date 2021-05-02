@@ -55,6 +55,31 @@ class Multiplication(private val left: Expression, private val right: Expression
             reducedLeft is Constant && reducedLeft.value == 1.0 -> reducedRight
             reducedRight is Constant && reducedRight.value == 1.0 -> reducedLeft
             reducedLeft is Constant && reducedRight is Constant -> Constant(reducedLeft.value * reducedRight.value)
+
+            reducedRight is Constant
+                    && reducedLeft is Multiplication
+                    && reducedLeft.left is Constant
+            ->
+                Constant(reducedRight.value * reducedLeft.left.value) * reducedLeft.right
+
+            reducedRight is Constant
+                    && reducedLeft is Multiplication
+                    && reducedLeft.right is Constant
+            ->
+                Constant(reducedRight.value * reducedLeft.right.value) * reducedLeft.left
+
+            reducedLeft is Constant
+                    && reducedRight is Multiplication
+                    && reducedRight.left is Constant
+            ->
+                Constant(reducedLeft.value * reducedRight.left.value) * reducedRight
+
+            reducedLeft is Constant
+                    && reducedRight is Multiplication
+                    && reducedRight.right is Constant
+            ->
+                Constant(reducedLeft.value * reducedRight.right.value) * reducedRight
+
             else -> Multiplication(reducedLeft, reducedRight)
         }
     }
@@ -124,7 +149,7 @@ class Division(private val left: Expression, private val right: Expression) : Ex
     }
 
     override fun derive(variableName: String): Expression {
-        return ((left.derive(variableName) * right) - (right.derive(variableName) * left)) / Power(right, Constant( 2.0))
+        return ((left.derive(variableName) * right) - (right.derive(variableName) * left)) / Power(right, Constant(2.0))
     }
 
     override fun toString(): String {
@@ -139,6 +164,7 @@ class Power(private val left: Expression, private val right: Expression) : Expre
 
         return when {
             reducedLeft is Constant && reducedRight is Constant -> Constant(reducedLeft.value.pow(reducedRight.value))
+            reducedRight is Constant && reducedRight.value == 1.0 -> reducedLeft
             else -> Power(reducedLeft, reducedRight)
         }
     }
