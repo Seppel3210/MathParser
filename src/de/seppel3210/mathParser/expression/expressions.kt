@@ -50,6 +50,10 @@ class Multiplication(private val left: Expression, private val right: Expression
         val reducedRight = right.reduce()
 
         return when {
+            reducedLeft is Constant && reducedLeft.value == 0.0 -> Constant(0.0)
+            reducedRight is Constant && reducedRight.value == 0.0 -> Constant(0.0)
+            reducedLeft is Constant && reducedLeft.value == 1.0 -> reducedRight
+            reducedRight is Constant && reducedRight.value == 1.0 -> reducedLeft
             reducedLeft is Constant && reducedRight is Constant -> Constant(reducedLeft.value * reducedRight.value)
             else -> Multiplication(reducedLeft, reducedRight)
         }
@@ -70,6 +74,8 @@ class Addition(private val left: Expression, private val right: Expression) : Ex
         val reducedRight = right.reduce()
 
         return when {
+            reducedLeft is Constant && reducedLeft.value == 0.0 -> reducedRight
+            reducedRight is Constant && reducedRight.value == 0.0 -> reducedLeft
             reducedLeft is Constant && reducedRight is Constant -> Constant(reducedLeft.value + reducedRight.value)
             else -> Addition(reducedLeft, reducedRight)
         }
@@ -90,6 +96,8 @@ class Subtraction(private val left: Expression, private val right: Expression) :
         val reducedRight = right.reduce()
 
         return when {
+            reducedLeft is Constant && reducedLeft.value == 0.0 -> (Constant(-1.0) * reducedRight).reduce()
+            reducedRight is Constant && reducedRight.value == 0.0 -> reducedLeft
             reducedLeft is Constant && reducedRight is Constant -> Constant(reducedLeft.value - reducedRight.value)
             else -> Subtraction(reducedLeft, reducedRight)
         }
