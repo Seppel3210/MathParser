@@ -2,8 +2,8 @@ package de.seppel3210.mathParser.parser
 
 import de.seppel3210.mathParser.expression.*
 
-const val openParen = "("
-const val closingParen = ")"
+const val openParen = '('
+const val closingParen = ')'
 
 class InvalidSyntax(message: String) : Exception("Invalid syntax: $message")
 
@@ -13,14 +13,37 @@ fun parse(mathExpression: String): Expression {
 }
 
 private fun lex(mathExpression: String): List<String> {
-    return mathExpression.split(Regex("""\s"""))
+    val tokens = mutableListOf<String>()
+    var nextToken = ""
+    for (c in mathExpression) {
+        when (c) {
+            in listOf(openParen, closingParen, '+', '-', '*', '^', '/') -> {
+                if (nextToken.isNotEmpty()) {
+                    tokens.add(nextToken)
+                    nextToken = ""
+                }
+                tokens.add("$c")
+            }
+            in listOf(' ', '\t', '\n') -> {
+                if (nextToken.isNotEmpty()) {
+                    tokens.add(nextToken)
+                    nextToken = ""
+                }
+            }
+            else -> nextToken += c
+        }
+    }
+    if (nextToken.isNotEmpty()) {
+        tokens.add(nextToken)
+    }
+    return tokens
 }
 
 private fun parse(tokenList: List<String>): Expression {
     var tokens = tokenList
 
     // strip unnecessary parentheses
-    if (tokens.first() == openParen && tokens.last() == closingParen) {
+    if (tokens.first() == "$openParen" && tokens.last() == "$closingParen") {
         tokens = tokens.drop(1).dropLast(1)
     }
 
@@ -55,8 +78,8 @@ private fun nextExpressionTokens(tokens: List<String>): List<String> {
     var index = 0
     do {
         when (tokens[index]) {
-            openParen -> unclosedParens++
-            closingParen -> unclosedParens--
+            "$openParen" -> unclosedParens++
+            "$closingParen" -> unclosedParens--
         }
         index++
     } while (unclosedParens != 0)
