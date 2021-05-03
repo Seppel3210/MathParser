@@ -82,6 +82,7 @@ class Lexer(private val source: String) {
             startLine = currentLine
             lexToken()
         }
+        tokens.add(Token(TokenType.EOF, "", Pair(currentLine, currentColumn), null))
         return tokens.toList()
     }
 }
