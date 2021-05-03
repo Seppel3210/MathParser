@@ -8,6 +8,7 @@ abstract class Expression {
     abstract fun derive(variableName: String): Expression
     operator fun plus(rhs: Expression) = Addition(this, rhs)
     operator fun minus(rhs: Expression) = Subtraction(this, rhs)
+    operator fun unaryMinus() = Minus(this)
     operator fun times(rhs: Expression) = Multiplication(this, rhs)
     operator fun div(rhs: Expression) = Division(this, rhs)
 }
@@ -41,6 +42,24 @@ class Variable(val name: String) : Expression() {
 
     override fun toString(): String {
         return name
+    }
+}
+
+class Minus(private val expr: Expression) : Expression() {
+    override fun reduce(): Expression {
+        return if (expr is Constant) {
+            Constant(-expr.value)
+        } else {
+            this
+        }
+    }
+
+    override fun derive(variableName: String): Expression {
+        return Minus(expr.derive(variableName))
+    }
+
+    override fun toString(): String {
+        return "(-$expr)"
     }
 }
 
