@@ -58,6 +58,10 @@ class Lexer(private val source: String) {
     private fun ident() {
         while (peek().isLetterOrDigit() || peek() == '_')
             advance()
+        if (source.substring(start until current) == "ln") {
+            addToken(TokenType.FUNCTION_LN)
+            return
+        }
         addToken(TokenType.IDENT)
     }
 

@@ -53,13 +53,22 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun power(): Expression {
-        var expr = primary()
+        var expr = function()
 
         if (matches(CARET)) {
             val right = power()
             expr = Power(expr, right)
         }
         return expr
+    }
+
+    private fun function(): Expression {
+        return if (matches(FUNCTION_LN)) {
+            val right = primary()
+            NaturalLog(right)
+        } else {
+            primary()
+        }
     }
 
     private fun primary(): Expression {
