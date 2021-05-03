@@ -164,6 +164,8 @@ class Division(private val left: Expression, private val right: Expression) : Ex
 
         return when {
             reducedLeft is Constant && reducedRight is Constant -> Constant(reducedLeft.value / reducedRight.value)
+            reducedLeft is Constant && reducedLeft.value == 0.0 -> Constant(0.0)
+            reducedRight is Constant && reducedRight.value == 1.0 -> reducedLeft
             else -> Division(reducedLeft, reducedRight)
         }
     }
