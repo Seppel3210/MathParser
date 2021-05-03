@@ -47,6 +47,7 @@ class Variable(val name: String) : Expression() {
 
 class Minus(private val expr: Expression) : Expression() {
     override fun reduce(): Expression {
+        val expr = expr.reduce()
         return if (expr is Constant) {
             Constant(-expr.value)
         } else {
