@@ -42,10 +42,6 @@ private fun lex(mathExpression: String): List<String> {
 private fun parse(tokenList: List<String>): Expression {
     var tokens = tokenList
 
-    // strip unnecessary parentheses
-    if (tokens.first() == "$openParen" && tokens.last() == "$closingParen") {
-        tokens = tokens.drop(1).dropLast(1)
-    }
 
     if (tokens.size == 1) {
         val value = tokens.first().toDoubleOrNull()
@@ -56,12 +52,16 @@ private fun parse(tokenList: List<String>): Expression {
         }
     }
 
-    val leftTokens = nextExpressionTokens(tokens)
+    var leftTokens = nextExpressionTokens(tokens)
     tokens = tokens.drop(leftTokens.size) // advance tokens by one expression
-    val operation = tokens.first()
-    val rightTokens = tokens.drop(1)
-
+    // strip unnecessary parentheses
+    if (leftTokens.first() == "$openParen" && leftTokens.last() == "$closingParen") {
+        leftTokens = leftTokens.drop(1).dropLast(1)
+    }
     val leftExpression = parse(leftTokens)
+
+    val operation = tokens.firstOrNull() ?: return leftExpression
+    val rightTokens = tokens.drop(1)
     val rightExpression = parse(rightTokens)
     return when (operation) {
         "+" -> Addition(leftExpression, rightExpression)
