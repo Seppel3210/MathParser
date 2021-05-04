@@ -51,7 +51,7 @@ class Minus(private val expr: Expression) : Expression() {
         return if (expr is Constant) {
             Constant(-expr.value)
         } else {
-            this
+            Minus(expr)
         }
     }
 
