@@ -143,6 +143,30 @@ class Addition(private val left: Expression, private val right: Expression) : Ex
             reducedLeft is Constant && reducedLeft.value == 0.0 -> reducedRight
             reducedRight is Constant && reducedRight.value == 0.0 -> reducedLeft
             reducedLeft is Constant && reducedRight is Constant -> Constant(reducedLeft.value + reducedRight.value)
+
+            reducedRight is Constant
+                    && reducedLeft is Addition
+                    && reducedLeft.left is Constant
+            ->
+                Constant(reducedRight.value + reducedLeft.left.value) + reducedLeft.right
+
+            reducedRight is Constant
+                    && reducedLeft is Addition
+                    && reducedLeft.right is Constant
+            ->
+                Constant(reducedRight.value + reducedLeft.right.value) + reducedLeft.left
+
+            reducedLeft is Constant
+                    && reducedRight is Addition
+                    && reducedRight.left is Constant
+            ->
+                Constant(reducedLeft.value + reducedRight.left.value) + reducedRight
+
+            reducedLeft is Constant
+                    && reducedRight is Addition
+                    && reducedRight.right is Constant
+            ->
+                Constant(reducedLeft.value + reducedRight.right.value) + reducedRight
             else -> Addition(reducedLeft, reducedRight)
         }
     }
