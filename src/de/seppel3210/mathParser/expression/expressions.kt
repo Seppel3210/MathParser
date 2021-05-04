@@ -204,6 +204,9 @@ class NaturalLog(private val arg: Expression) : Expression() {
     override fun reduce(): Expression {
         return when (val reducedArg = arg.reduce()) {
             is Constant -> Constant(ln(reducedArg.value))
+            // Hack: special case for variables called "e"
+            // TODO: maybe special case constants like e and pi in the lexer or parser?
+            is Variable  -> if (reducedArg.name == "e") Constant(1.0) else NaturalLog(reducedArg)
             else -> NaturalLog(reducedArg)
         }
     }
