@@ -6,6 +6,7 @@ import kotlin.math.pow
 abstract class Expression {
     abstract fun reduce(): Expression
     abstract fun derive(variableName: String): Expression
+    abstract fun substitute(variableName: String, expr: Expression): Expression
     operator fun plus(rhs: Expression) = Addition(this, rhs)
     operator fun minus(rhs: Expression) = Subtraction(this, rhs)
     operator fun unaryMinus() = Minus(this)
@@ -20,6 +21,10 @@ class Constant(val value: Double) : Expression() {
 
     override fun derive(variableName: String): Expression {
         return Constant(0.0)
+    }
+
+    override fun substitute(variableName: String, expr: Expression): Expression {
+        return this
     }
 
     override fun toString(): String {
@@ -40,6 +45,14 @@ class Variable(val name: String) : Expression() {
         }
     }
 
+    override fun substitute(variableName: String, expr: Expression): Expression {
+        return if (variableName == name) {
+            expr
+        } else {
+            this
+        }
+    }
+
     override fun toString(): String {
         return name
     }
@@ -57,6 +70,10 @@ class Minus(private val expr: Expression) : Expression() {
 
     override fun derive(variableName: String): Expression {
         return Minus(expr.derive(variableName))
+    }
+
+    override fun substitute(variableName: String, expr: Expression): Expression {
+        return -expr.substitute(variableName, expr)
     }
 
     override fun toString(): String {
@@ -108,6 +125,10 @@ class Multiplication(private val left: Expression, private val right: Expression
         return (left.derive(variableName) * right) + (right.derive(variableName) * left)
     }
 
+    override fun substitute(variableName: String, expr: Expression): Expression {
+        return left.substitute(variableName, expr) * right.substitute(variableName, expr)
+    }
+
     override fun toString(): String {
         return "($left * $right)"
     }
@@ -128,6 +149,10 @@ class Addition(private val left: Expression, private val right: Expression) : Ex
 
     override fun derive(variableName: String): Expression {
         return left.derive(variableName) + right.derive(variableName)
+    }
+
+    override fun substitute(variableName: String, expr: Expression): Expression {
+        return left.substitute(variableName, expr) + right.substitute(variableName, expr)
     }
 
     override fun toString(): String {
@@ -152,6 +177,10 @@ class Subtraction(private val left: Expression, private val right: Expression) :
         return left.derive(variableName) - right.derive(variableName)
     }
 
+    override fun substitute(variableName: String, expr: Expression): Expression {
+        return left.substitute(variableName, expr) - right.substitute(variableName, expr)
+    }
+
     override fun toString(): String {
         return "($left - $right)"
     }
@@ -174,6 +203,10 @@ class Division(private val left: Expression, private val right: Expression) : Ex
         return ((left.derive(variableName) * right) - (right.derive(variableName) * left)) / Power(right, Constant(2.0))
     }
 
+    override fun substitute(variableName: String, expr: Expression): Expression {
+        return left.substitute(variableName, expr) / right.substitute(variableName, expr)
+    }
+
     override fun toString(): String {
         return "($left / $right)"
     }
@@ -192,7 +225,12 @@ class Power(private val left: Expression, private val right: Expression) : Expre
     }
 
     override fun derive(variableName: String): Expression {
-        return (right.derive(variableName) * NaturalLog(left) * this) + (right * left.derive(variableName) * Power(left, right - Constant(1.0)))
+        return (right.derive(variableName) * NaturalLog(left) * this) +
+                (right * left.derive(variableName) * Power(left, right - Constant(1.0)))
+    }
+
+    override fun substitute(variableName: String, expr: Expression): Expression {
+        return Power(left.substitute(variableName, expr), right.substitute(variableName, expr))
     }
 
     override fun toString(): String {
@@ -206,13 +244,17 @@ class NaturalLog(private val arg: Expression) : Expression() {
             is Constant -> Constant(ln(reducedArg.value))
             // Hack: special case for variables called "e"
             // TODO: maybe special case constants like e and pi in the lexer or parser?
-            is Variable  -> if (reducedArg.name == "e") Constant(1.0) else NaturalLog(reducedArg)
+            is Variable -> if (reducedArg.name == "e") Constant(1.0) else NaturalLog(reducedArg)
             else -> NaturalLog(reducedArg)
         }
     }
 
     override fun derive(variableName: String): Expression {
         return (Constant(1.0) / arg) * arg.derive(variableName)
+    }
+
+    override fun substitute(variableName: String, expr: Expression): Expression {
+        return NaturalLog(arg.substitute(variableName, expr))
     }
 
     override fun toString(): String {
