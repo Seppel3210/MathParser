@@ -3,6 +3,15 @@ package de.seppel3210.mathParser.expression
 import kotlin.math.ln
 import kotlin.math.pow
 
+enum class Precedence {
+    Lowest,
+    Sum,
+    Product,
+    Power,
+    PowerLeft,
+    Highest,
+}
+
 abstract class Expression {
     abstract fun reduce(): Expression
     abstract fun derive(variableName: String): Expression
@@ -12,6 +21,7 @@ abstract class Expression {
     operator fun unaryMinus() = Minus(this)
     operator fun times(rhs: Expression) = Multiplication(this, rhs)
     operator fun div(rhs: Expression) = Division(this, rhs)
+    abstract fun prettyPrint(outerPrecedence: Precedence): String
 }
 
 class Constant(val value: Double) : Expression() {
@@ -25,6 +35,10 @@ class Constant(val value: Double) : Expression() {
 
     override fun substitute(variableName: String, expr: Expression): Expression {
         return this
+    }
+
+    override fun prettyPrint(outerPrecedence: Precedence): String {
+        return toString()
     }
 
     override fun toString(): String {
@@ -53,6 +67,10 @@ class Variable(val name: String) : Expression() {
         }
     }
 
+    override fun prettyPrint(outerPrecedence: Precedence): String {
+        return toString()
+    }
+
     override fun toString(): String {
         return name
     }
@@ -74,6 +92,10 @@ class Minus(private val expr: Expression) : Expression() {
 
     override fun substitute(variableName: String, expr: Expression): Expression {
         return -expr.substitute(variableName, expr)
+    }
+
+    override fun prettyPrint(outerPrecedence: Precedence): String {
+        return "(-${expr.prettyPrint(Precedence.Highest)})"
     }
 
     override fun toString(): String {
@@ -129,6 +151,16 @@ class Multiplication(private val left: Expression, private val right: Expression
         return left.substitute(variableName, expr) * right.substitute(variableName, expr)
     }
 
+    override fun prettyPrint(outerPrecedence: Precedence): String {
+        val precedence = Precedence.Product
+        val inner = "${left.prettyPrint(precedence)} * ${right.prettyPrint(precedence)}"
+        return if (outerPrecedence <= precedence) {
+            inner
+        } else {
+            "($inner)"
+        }
+    }
+
     override fun toString(): String {
         return "($left * $right)"
     }
@@ -179,6 +211,16 @@ class Addition(private val left: Expression, private val right: Expression) : Ex
         return left.substitute(variableName, expr) + right.substitute(variableName, expr)
     }
 
+    override fun prettyPrint(outerPrecedence: Precedence): String {
+        val precedence = Precedence.Sum
+        val inner = "${left.prettyPrint(precedence)} + ${right.prettyPrint(precedence)}"
+        return if (outerPrecedence <= precedence) {
+            inner
+        } else {
+            "($inner)"
+        }
+    }
+
     override fun toString(): String {
         return "($left + $right)"
     }
@@ -203,6 +245,16 @@ class Subtraction(private val left: Expression, private val right: Expression) :
 
     override fun substitute(variableName: String, expr: Expression): Expression {
         return left.substitute(variableName, expr) - right.substitute(variableName, expr)
+    }
+
+    override fun prettyPrint(outerPrecedence: Precedence): String {
+        val precedence = Precedence.Sum
+        val inner = "${left.prettyPrint(precedence)} - ${right.prettyPrint(precedence)}"
+        return if (outerPrecedence <= precedence) {
+            inner
+        } else {
+            "($inner)"
+        }
     }
 
     override fun toString(): String {
@@ -231,6 +283,16 @@ class Division(private val left: Expression, private val right: Expression) : Ex
         return left.substitute(variableName, expr) / right.substitute(variableName, expr)
     }
 
+    override fun prettyPrint(outerPrecedence: Precedence): String {
+        val precedence = Precedence.Product
+        val inner = "${left.prettyPrint(precedence)} / ${right.prettyPrint(precedence)}"
+        return if (outerPrecedence <= precedence) {
+            inner
+        } else {
+            "($inner)"
+        }
+    }
+
     override fun toString(): String {
         return "($left / $right)"
     }
@@ -244,7 +306,7 @@ class Power(private val left: Expression, private val right: Expression) : Expre
         return when {
             reducedLeft is Constant && reducedRight is Constant -> Constant(reducedLeft.value.pow(reducedRight.value))
             reducedRight is Constant && reducedRight.value == 1.0 -> reducedLeft
-            reducedLeft is Power-> Power(reducedLeft.left, (reducedLeft.right * reducedRight).reduce())
+            reducedLeft is Power -> Power(reducedLeft.left, (reducedLeft.right * reducedRight).reduce())
             else -> Power(reducedLeft, reducedRight)
         }
     }
@@ -256,6 +318,16 @@ class Power(private val left: Expression, private val right: Expression) : Expre
 
     override fun substitute(variableName: String, expr: Expression): Expression {
         return Power(left.substitute(variableName, expr), right.substitute(variableName, expr))
+    }
+
+    override fun prettyPrint(outerPrecedence: Precedence): String {
+        val precedence = Precedence.Power
+        val inner = "${left.prettyPrint(Precedence.PowerLeft)} ^ ${right.prettyPrint(precedence)}"
+        return if (outerPrecedence <= precedence) {
+            inner
+        } else {
+            "($inner)"
+        }
     }
 
     override fun toString(): String {
@@ -280,6 +352,10 @@ class NaturalLog(private val arg: Expression) : Expression() {
 
     override fun substitute(variableName: String, expr: Expression): Expression {
         return NaturalLog(arg.substitute(variableName, expr))
+    }
+
+    override fun prettyPrint(outerPrecedence: Precedence): String {
+        return "ln(${arg.prettyPrint(Precedence.Lowest)})"
     }
 
     override fun toString(): String {

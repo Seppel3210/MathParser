@@ -1,6 +1,7 @@
 package de.seppel3210.mathParser
 
 import de.seppel3210.mathParser.expression.Expression
+import de.seppel3210.mathParser.expression.Precedence
 import kotlin.system.exitProcess
 
 fun main() {
@@ -45,7 +46,7 @@ val actions: Map<String, (Expression) -> Expression> = mapOf(
 
 fun expressionMenu(expression: Expression) {
     var expr = expression
-    println(expr)
+    println(expr.prettyPrint(Precedence.Lowest))
     while (true) {
         println("actions: ${actions.keys} or \"exit\" to type another expression")
         val actionName = (readLine() ?: exitProcess(0)).trim()
@@ -56,6 +57,6 @@ fun expressionMenu(expression: Expression) {
             continue
         }
         expr = action(expr)
-        println(expr)
+        println(expr.prettyPrint(Precedence.Lowest))
     }
 }
