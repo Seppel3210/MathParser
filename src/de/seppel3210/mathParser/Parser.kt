@@ -81,7 +81,7 @@ class Parser(private val tokens: List<Token>) {
                 assert(RIGHT_PAREN, "Expect ')' after expression.")
                 return expression
             }
-            else -> throw RuntimeException("Unexpected token: `$token`")
+            else -> throw ParserException("Unexpected token: `$token`")
         }
     }
 
@@ -112,7 +112,7 @@ class Parser(private val tokens: List<Token>) {
         if (peek().type == type) {
             advance()
         } else {
-            throw RuntimeException(errMsg)
+            throw ParserException(errMsg)
         }
     }
 }

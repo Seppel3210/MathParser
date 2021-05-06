@@ -37,7 +37,7 @@ class Lexer(private val source: String) {
     }
 
     private fun lexToken() {
-        when (advance()) {
+        when (val char = advance()) {
             '(' -> addToken(TokenType.LEFT_PAREN)
             ')' -> addToken(TokenType.RIGHT_PAREN)
             '-' -> addToken(TokenType.MINUS)
@@ -52,6 +52,7 @@ class Lexer(private val source: String) {
             in 'a'..'z', in 'A'..'Z' -> ident()
             in '0'..'9' -> number()
             '\t', ' ' -> Unit
+            else -> throw LexerException("Unexpected character: $char")
         }
     }
 
