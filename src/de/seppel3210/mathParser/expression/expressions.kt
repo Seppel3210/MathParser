@@ -244,6 +244,7 @@ class Power(private val left: Expression, private val right: Expression) : Expre
         return when {
             reducedLeft is Constant && reducedRight is Constant -> Constant(reducedLeft.value.pow(reducedRight.value))
             reducedRight is Constant && reducedRight.value == 1.0 -> reducedLeft
+            reducedLeft is Power-> Power(reducedLeft.left, (reducedLeft.right * reducedRight).reduce())
             else -> Power(reducedLeft, reducedRight)
         }
     }
